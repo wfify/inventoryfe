@@ -22,21 +22,22 @@ const CreateComponent = () => {
   const createProduct = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      title,
-      description,
-      image: image ? image.name : "", // hanya nama file disimpan
-    };
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    if (image) {
+      formData.append("image", image); // kirim file, bukan hanya namanya
+    }
 
     try {
       setLoading(true);
 
       const { data } = await axios.post(
         `https://inventoryjs-three.vercel.app/products`,
-        payload,
+        formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -44,7 +45,7 @@ const CreateComponent = () => {
       Swal.fire({
         icon: "success",
         title: "Success",
-        text: "Product created successfully!",
+        text: data.message || "Product created successfully!",
       });
 
       navigate("/");
@@ -96,7 +97,7 @@ const CreateComponent = () => {
                   </div>
                 )}
 
-                <Form onSubmit={createProduct}>
+                <Form onSubmit={createProduct} encType="multipart/form-data">
                   <Row>
                     <Col>
                       <Form.Group controlId="Title">
@@ -147,7 +148,7 @@ const CreateComponent = () => {
                     block="block"
                     type="submit"
                   >
-                    Save
+                    {loading ? "Saving..." : "Save"}
                   </Button>
                 </Form>
               </div>
