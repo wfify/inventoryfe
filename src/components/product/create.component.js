@@ -22,54 +22,64 @@ const CreateComponent = () => {
   const createProduct = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
+    // json-server doesn't support multipart/form-data natively
+    // Convert image to base64 or use a text field instead for image URL
+    const reader = new FileReader();
     if (image) {
-      formData.append("image", image); // kirim file, bukan hanya namanya
+      reader.readAsDataURL(image);
+    } else {
+      handleSubmit(null);
     }
 
-    try {
-      setLoading(true);
+    reader.onloadend = () => {
+      handleSubmit(reader.result);
+    };
 
-      const { data } = await axios.post(
-        `https://inventoryjs-three.vercel.app/products`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+    const handleSubmit = async (base64Image) => {
+      const payload = {
+        title,
+        description,
+        image: base64Image || null, // bisa berupa base64 atau null
+      };
 
-      Swal.fire({
-        icon: "success",
-        title: "Success",
-        text: data.message || "Product created successfully!",
-      });
+      try {
+        setLoading(true);
 
-      navigate("/");
-    } catch (error) {
-      if (error.response) {
-        const { status, data } = error.response;
+        const { data } = await axios.post(
+          `https://inventoryjs-three.vercel.app/products`,
+          payload,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-        if (status === 422) {
-          setValidationError(data.errors);
+        console.log("Create Response:", data);
+
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Product created successfully!",
+        });
+
+        navigate("/");
+      } catch (error) {
+        if (error.response) {
+          Swal.fire({
+            icon: "error",
+            text: error.response.data.message || "Something went wrong",
+          });
         } else {
           Swal.fire({
             icon: "error",
-            text: data.message || "Something went wrong",
+            text: error.message || "Request failed",
           });
         }
-      } else {
-        Swal.fire({
-          icon: "error",
-          text: error.message || "Request failed",
-        });
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
+    };
   };
 
   return (
@@ -97,7 +107,7 @@ const CreateComponent = () => {
                   </div>
                 )}
 
-                <Form onSubmit={createProduct} encType="multipart/form-data">
+                <Form onSubmit={createProduct}>
                   <Row>
                     <Col>
                       <Form.Group controlId="Title">
@@ -130,7 +140,7 @@ const CreateComponent = () => {
                   <Row>
                     <Col>
                       <Form.Group controlId="Image" className="mb-3">
-                        <Form.Label>Image</Form.Label>
+                        <Form.Label>Image (optional)</Form.Label>
                         <Form.Control
                           type="file"
                           onChange={changeHandler}
