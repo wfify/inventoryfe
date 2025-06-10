@@ -18,7 +18,7 @@ const CreateComponent = () => {
   const changeHandler = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setImage(file.name); // hanya ambil nama filenya
+      setImage(file.name); // hanya simpan nama file
     } else {
       setImage(null);
     }
@@ -30,13 +30,13 @@ const CreateComponent = () => {
     const payload = {
       title,
       description,
-      image: image || null, // kirim nama file gambar
+      image: image || "", // kirim nama file, bukan file-nya
     };
 
     try {
       setLoading(true);
 
-      const { data } = await axios.post(
+      const response = await axios.post(
         `https://inventoryjs-three.vercel.app/products`,
         payload,
         {
@@ -46,6 +46,10 @@ const CreateComponent = () => {
         }
       );
 
+      // Optional: log data yang dikembalikan
+      console.log("Created:", response.data);
+
+      // Sukses: tampilkan SweetAlert
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -54,19 +58,15 @@ const CreateComponent = () => {
 
       navigate("/");
     } catch (error) {
-      console.error("Error response:", error.response);
+      console.error("Error saat create:", error);
 
-      if (error.response) {
-        Swal.fire({
-          icon: "error",
-          text: error.response.data.message || "Something went wrong",
-        });
-      } else {
-        Swal.fire({
-          icon: "error",
-          text: error.message || "Request failed",
-        });
-      }
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          error?.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -130,11 +130,11 @@ const CreateComponent = () => {
                   <Row>
                     <Col>
                       <Form.Group controlId="Image" className="mb-3">
-                        <Form.Label>Image (only filename will be saved)</Form.Label>
+                        <Form.Label>Image (filename only)</Form.Label>
                         <Form.Control
                           type="file"
-                          onChange={changeHandler}
                           accept="image/*"
+                          onChange={changeHandler}
                         />
                       </Form.Group>
                     </Col>
