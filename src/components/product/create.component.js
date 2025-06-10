@@ -16,70 +16,60 @@ const CreateComponent = () => {
   const [validationError, setValidationError] = useState({});
 
   const changeHandler = (event) => {
-    setImage(event.target.files[0]);
+    const file = event.target.files[0];
+    if (file) {
+      setImage(file.name); // hanya ambil nama filenya
+    } else {
+      setImage(null);
+    }
   };
 
   const createProduct = async (e) => {
     e.preventDefault();
 
-    // json-server doesn't support multipart/form-data natively
-    // Convert image to base64 or use a text field instead for image URL
-    const reader = new FileReader();
-    if (image) {
-      reader.readAsDataURL(image);
-    } else {
-      handleSubmit(null);
-    }
-
-    reader.onloadend = () => {
-      handleSubmit(reader.result);
+    const payload = {
+      title,
+      description,
+      image: image || null, // kirim nama file gambar
     };
 
-    const handleSubmit = async (base64Image) => {
-      const payload = {
-        title,
-        description,
-        image: base64Image || null, // bisa berupa base64 atau null
-      };
+    try {
+      setLoading(true);
 
-      try {
-        setLoading(true);
-
-        const { data } = await axios.post(
-          `https://inventoryjs-three.vercel.app/products`,
-          payload,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        console.log("Create Response:", data);
-
-        Swal.fire({
-          icon: "success",
-          title: "Success",
-          text: "Product created successfully!",
-        });
-
-        navigate("/");
-      } catch (error) {
-        if (error.response) {
-          Swal.fire({
-            icon: "error",
-            text: error.response.data.message || "Something went wrong",
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            text: error.message || "Request failed",
-          });
+      const { data } = await axios.post(
+        `https://inventoryjs-three.vercel.app/products`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      } finally {
-        setLoading(false);
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: "Product created successfully!",
+      });
+
+      navigate("/");
+    } catch (error) {
+      console.error("Error response:", error.response);
+
+      if (error.response) {
+        Swal.fire({
+          icon: "error",
+          text: error.response.data.message || "Something went wrong",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          text: error.message || "Request failed",
+        });
       }
-    };
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -140,7 +130,7 @@ const CreateComponent = () => {
                   <Row>
                     <Col>
                       <Form.Group controlId="Image" className="mb-3">
-                        <Form.Label>Image (optional)</Form.Label>
+                        <Form.Label>Image (only filename will be saved)</Form.Label>
                         <Form.Control
                           type="file"
                           onChange={changeHandler}
