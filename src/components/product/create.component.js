@@ -72,9 +72,7 @@ const CreateComponent = () => {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text:
-          error?.response?.data?.message ||
-          "Something went wrong. Please try again.",
+        text: error.response.data.message,
       });
     } finally {
       setLoading(false);
