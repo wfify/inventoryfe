@@ -16,8 +16,8 @@ const ListComponent = () => {
         try {
             const response = await axios.get(`https://inventoryjs-three.vercel.app/`, {
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Accept': 'application/json'
+                    // 'Content-Type': 'application/json'
                 }
             });
 
@@ -52,8 +52,8 @@ const ListComponent = () => {
         try {
             const { data } = await axios.delete(`https://inventoryjs-three.vercel.app/products/${id}`, {
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Accept': 'application/json'
+                    // 'Content-Type': 'application/json'
                 }
             });
 
@@ -104,7 +104,7 @@ const ListComponent = () => {
                                                     <td>{row.title}</td>
                                                     <td>{row.description}</td>
                                                     <td>
-                                                        <img alt="product" width="50px" src={`http://localhost:8000/storage/product/image/${row.image}`} />
+                                                        {row.image ? <img alt="product" width="50px" src={`https://inventoryjs-three.vercel.app/storage/product/image/${row.image}`} />: 'No Image'}
                                                     </td>
                                                     <td>
                                                         <Link to={`/product/edit/${row.id}`} className='btn btn-success me-2'>

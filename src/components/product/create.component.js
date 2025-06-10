@@ -31,8 +31,7 @@ const CreateComponent = () => {
       setLoading(true);
       await axios.post(`https://inventoryjs-three.vercel.app/products`, formData, {
         headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Accept': 'application/json'
         }
       })
       .then(({data}) => {

@@ -52,8 +52,7 @@ const EditComponent = () => {
     await axios.put(`https://inventoryjs-three.vercel.app/products/${id}`, formData, {
       method: 'PUT',
       headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Accept': 'application/json'
       }
     })
       .then(({ data }) => {
