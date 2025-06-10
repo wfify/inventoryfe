@@ -12,7 +12,7 @@ const CreateComponent = () => {
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState("");
   const [validationError, setValidationError] = useState({});
 
   const changeHandler = (event) => {
@@ -20,21 +20,32 @@ const CreateComponent = () => {
     if (file) {
       setImage(file.name); // hanya simpan nama file
     } else {
-      setImage(null);
+      setImage("");
     }
   };
 
   const createProduct = async (e) => {
     e.preventDefault();
 
+    // Validasi manual
+    const errors = {};
+    if (!title.trim()) errors.title = "Title is required";
+    if (!description.trim()) errors.description = "Description is required";
+
+    if (Object.keys(errors).length > 0) {
+      setValidationError(errors);
+      return;
+    }
+
     const payload = {
       title,
       description,
-      image: image || "", // kirim nama file, bukan file-nya
+      image,
     };
 
     try {
       setLoading(true);
+      setValidationError({}); // reset error sebelumnya
 
       const response = await axios.post(
         `https://inventoryjs-three.vercel.app/products`,
@@ -46,10 +57,8 @@ const CreateComponent = () => {
         }
       );
 
-      // Optional: log data yang dikembalikan
       console.log("Created:", response.data);
 
-      // Sukses: tampilkan SweetAlert
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -82,18 +91,12 @@ const CreateComponent = () => {
               <hr />
               <div className="form-wrapper">
                 {Object.keys(validationError).length > 0 && (
-                  <div className="row">
-                    <div className="col-12">
-                      <div className="alert alert-danger">
-                        <ul className="mb-0">
-                          {Object.entries(validationError).map(
-                            ([key, value]) => (
-                              <li key={key}>{value}</li>
-                            )
-                          )}
-                        </ul>
-                      </div>
-                    </div>
+                  <div className="alert alert-danger">
+                    <ul className="mb-0">
+                      {Object.entries(validationError).map(([key, value]) => (
+                        <li key={key}>{value}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
