@@ -12,7 +12,7 @@ const CreateComponent = () => {
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState();
+  const [image, setImage] = useState(null);
   const [validationError, setValidationError] = useState({});
 
   const changeHandler = (event) => {
@@ -22,47 +22,50 @@ const CreateComponent = () => {
   const createProduct = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
+    const payload = {
+      title,
+      description,
+      image: image ? image.name : "", // hanya nama file disimpan
+    };
 
-    formData.append("title", title);
-    formData.append("image", image);
-    formData.append("description", description);
     try {
       setLoading(true);
-      await axios
-        .post(`https://inventoryjs-three.vercel.app/products`, formData, {
-          headers: {
-            Accept: "application/json",
-          },
-        })
-        .then(({ data }) => {
-          Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: data?.message || "Product created successfully!",
-          });
 
-          navigate("/");
-        })
-        .catch(({ response }) => {
-          console.log(response.status);
-          if (response?.status === 404 || response?.status === 500) {
-            navigate("/");
-          } else if (response.status === 422) {
-            setValidationError(response.data.errors);
-          } else {
-            Swal.fire({
-              icon: "error",
-              text: response.data.message,
-            });
-          }
-        });
-    } catch (error) {
+      const { data } = await axios.post(
+        `https://inventoryjs-three.vercel.app/products`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
       Swal.fire({
-        icon: "error",
-        text: error,
+        icon: "success",
+        title: "Success",
+        text: "Product created successfully!",
       });
-      setLoading(false);
+
+      navigate("/");
+    } catch (error) {
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (status === 422) {
+          setValidationError(data.errors);
+        } else {
+          Swal.fire({
+            icon: "error",
+            text: data.message || "Something went wrong",
+          });
+        }
+      } else {
+        Swal.fire({
+          icon: "error",
+          text: error.message || "Request failed",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -92,22 +95,22 @@ const CreateComponent = () => {
                     </div>
                   </div>
                 )}
+
                 <Form onSubmit={createProduct}>
                   <Row>
                     <Col>
-                      <Form.Group controlId="Name">
+                      <Form.Group controlId="Title">
                         <Form.Label>Title</Form.Label>
                         <Form.Control
                           type="text"
                           required
                           value={title}
-                          onChange={(event) => {
-                            setTitle(event.target.value);
-                          }}
+                          onChange={(e) => setTitle(e.target.value)}
                         />
                       </Form.Group>
                     </Col>
                   </Row>
+
                   <Row className="my-3">
                     <Col>
                       <Form.Group controlId="Description">
@@ -117,21 +120,25 @@ const CreateComponent = () => {
                           required
                           rows={3}
                           value={description}
-                          onChange={(event) => {
-                            setDescription(event.target.value);
-                          }}
+                          onChange={(e) => setDescription(e.target.value)}
                         />
                       </Form.Group>
                     </Col>
                   </Row>
+
                   <Row>
                     <Col>
                       <Form.Group controlId="Image" className="mb-3">
                         <Form.Label>Image</Form.Label>
-                        <Form.Control type="file" onChange={changeHandler} />
+                        <Form.Control
+                          type="file"
+                          onChange={changeHandler}
+                          accept="image/*"
+                        />
                       </Form.Group>
                     </Col>
                   </Row>
+
                   <Button
                     disabled={loading}
                     variant="primary"
